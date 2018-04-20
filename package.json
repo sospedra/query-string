@@ -1,8 +1,9 @@
 {
-  "name": "query-string",
-  "version": "6.0.0",
+  "name": "query-string-babel",
+  "version": "1.0.0",
   "description": "Parse and stringify URL query strings",
   "license": "MIT",
+  "main": "dist/index.js",
   "repository": "sindresorhus/query-string",
   "author": {
     "name": "Sindre Sorhus",
@@ -13,7 +14,9 @@
     "node": ">=6"
   },
   "scripts": {
-    "test": "xo && ava"
+    "test": "xo && ava",
+    "build": "babel index.js -d dist",
+    "prepublish": "npm run build"
   },
   "files": [
     "index.js"
@@ -39,6 +42,8 @@
   },
   "devDependencies": {
     "ava": "*",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "xo": "*"
   }
 }
