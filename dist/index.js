@@ -1,5 +1,18 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var strictUriEncode = function strictUriEncode(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function (x) {
+    return '%' + x.charCodeAt(0).toString(16).toUpperCase();
+  });
+};
+
+var strictUriEncode$1 = /*#__PURE__*/Object.freeze({
+  default: strictUriEncode,
+  __moduleExports: strictUriEncode
+});
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
   return typeof obj;
 } : function (obj) {
@@ -44,8 +57,108 @@ var slicedToArray = function () {
   };
 }();
 
-var strictUriEncode = require('./vendor/strict-uri-encode');
-var decodeComponent = require('./vendor/decode-uri-component');
+var token = '%[a-f0-9]{2}';
+var singleMatcher = new RegExp(token, 'gi');
+var multiMatcher = new RegExp('(' + token + ')+', 'gi');
+
+function decodeComponents(components, split) {
+	try {
+		// Try to decode the entire string first
+		return decodeURIComponent(components.join(''));
+	} catch (err) {
+		// Do nothing
+	}
+
+	if (components.length === 1) {
+		return components;
+	}
+
+	split = split || 1;
+
+	// Split the array in 2 parts
+	var left = components.slice(0, split);
+	var right = components.slice(split);
+
+	return Array.prototype.concat.call([], decodeComponents(left), decodeComponents(right));
+}
+
+function decode(input) {
+	try {
+		return decodeURIComponent(input);
+	} catch (err) {
+		var tokens = input.match(singleMatcher);
+
+		for (var i = 1; i < tokens.length; i++) {
+			input = decodeComponents(tokens, i).join('');
+
+			tokens = input.match(singleMatcher);
+		}
+
+		return input;
+	}
+}
+
+function customDecodeURIComponent(input) {
+	// Keep track of all the replacements and prefill the map with the `BOM`
+	var replaceMap = {
+		'%FE%FF': '\uFFFD\uFFFD',
+		'%FF%FE': '\uFFFD\uFFFD'
+	};
+
+	var match = multiMatcher.exec(input);
+	while (match) {
+		try {
+			// Decode as big chunks as possible
+			replaceMap[match[0]] = decodeURIComponent(match[0]);
+		} catch (err) {
+			var result = decode(match[0]);
+
+			if (result !== match[0]) {
+				replaceMap[match[0]] = result;
+			}
+		}
+
+		match = multiMatcher.exec(input);
+	}
+
+	// Add `%C2` at the end of the map to make sure it does not replace the combinator before everything else
+	replaceMap['%C2'] = '\uFFFD';
+
+	var entries = Object.keys(replaceMap);
+
+	for (var i = 0; i < entries.length; i++) {
+		// Replace all decoded components
+		var key = entries[i];
+		input = input.replace(new RegExp(key, 'g'), replaceMap[key]);
+	}
+
+	return input;
+}
+
+var decodeUriComponent = function decodeUriComponent(encodedURI) {
+	if (typeof encodedURI !== 'string') {
+		throw new TypeError('Expected `encodedURI` to be of type `string`, got `' + (typeof encodedURI === 'undefined' ? 'undefined' : _typeof(encodedURI)) + '`');
+	}
+
+	try {
+		encodedURI = encodedURI.replace(/\+/g, ' ');
+
+		// Try the built in decoder first
+		return decodeURIComponent(encodedURI);
+	} catch (err) {
+		// Fallback to a more advanced decoder
+		return customDecodeURIComponent(encodedURI);
+	}
+};
+
+var decodeUriComponent$1 = /*#__PURE__*/Object.freeze({
+  default: decodeUriComponent,
+  __moduleExports: decodeUriComponent
+});
+
+var strictUriEncode$2 = ( strictUriEncode$1 && strictUriEncode ) || strictUriEncode$1;
+
+var decodeComponent = ( decodeUriComponent$1 && decodeUriComponent ) || decodeUriComponent$1;
 
 function encoderForArrayFormat(options) {
 	switch (options.arrayFormat) {
@@ -116,7 +229,7 @@ function parserForArrayFormat(options) {
 
 function encode(value, options) {
 	if (options.encode) {
-		return options.strict ? strictUriEncode(value) : encodeURIComponent(value);
+		return options.strict ? strictUriEncode$2(value) : encodeURIComponent(value);
 	}
 
 	return value;
@@ -213,10 +326,10 @@ function parse(input, options) {
 	}, Object.create(null));
 }
 
-exports.extract = extract;
-exports.parse = parse;
+var extract_1 = extract;
+var parse_1 = parse;
 
-exports.stringify = function (obj, options) {
+var stringify = function stringify(obj, options) {
 	var defaults$$1 = {
 		encode: true,
 		strict: true,
@@ -283,9 +396,22 @@ exports.stringify = function (obj, options) {
 	}).join('&') : '';
 };
 
-exports.parseUrl = function (input, options) {
+var parseUrl = function parseUrl(input, options) {
 	return {
 		url: input.split('?')[0] || '',
 		query: parse(extract(input), options)
 	};
 };
+
+var queryString = {
+	extract: extract_1,
+	parse: parse_1,
+	stringify: stringify,
+	parseUrl: parseUrl
+};
+
+exports.default = queryString;
+exports.extract = extract_1;
+exports.parse = parse_1;
+exports.stringify = stringify;
+exports.parseUrl = parseUrl;
