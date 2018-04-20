@@ -15,7 +15,7 @@
   },
   "scripts": {
     "test": "xo && ava",
-    "build": "babel index.js -d dist",
+    "build": "rollup -c",
     "prepublish": "npm run build"
   },
   "files": [
@@ -43,7 +43,12 @@
   "devDependencies": {
     "ava": "*",
     "babel-cli": "^6.26.0",
+    "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.6.1",
+    "rollup": "^0.58.1",
+    "rollup-plugin-babel": "^3.0.3",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-resolve": "0.0.1-predev.1",
     "xo": "*"
   }
 }
