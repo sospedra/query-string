@@ -44,8 +44,8 @@ var slicedToArray = function () {
   };
 }();
 
-var strictUriEncode = require('strict-uri-encode');
-var decodeComponent = require('decode-uri-component');
+var strictUriEncode = require('./vendor/strict-uri-encode');
+var decodeComponent = require('./vendor/decode-uri-component');
 
 function encoderForArrayFormat(options) {
 	switch (options.arrayFormat) {

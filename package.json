@@ -36,10 +36,6 @@
     "decode",
     "searchparams"
   ],
-  "dependencies": {
-    "decode-uri-component": "^0.2.0",
-    "strict-uri-encode": "^2.0.0"
-  },
   "devDependencies": {
     "ava": "*",
     "babel-cli": "^6.26.0",
